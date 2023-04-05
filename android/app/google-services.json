@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "975604973841",
+    "project_id": "pkeep-5d010",
+    "storage_bucket": "pkeep-5d010.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:975604973841:android:0e37284d8da45f90510cb0",
+        "android_client_info": {
+          "package_name": "com.ritesh.pkeep_v2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "975604973841-oau79peggkno99t1v8i86m64tm6763un.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_0AEjwMlx_oRYxJvWoanG2YNYpvEkV0g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "975604973841-oau79peggkno99t1v8i86m64tm6763un.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
