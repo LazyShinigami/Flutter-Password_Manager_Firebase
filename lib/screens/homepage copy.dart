@@ -16,12 +16,10 @@ class _HomepageCopyState extends State<HomepageCopy> {
   final cNameController = TextEditingController();
   final cPasswordController = TextEditingController();
   final cUsernameController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     Map<String, Password> pwdRegister = {};
-    void deleteItem(id) {
-      pwdRegister.remove(id);
-    }
 
     // Entire screen - Scaffold
     return Scaffold(
