@@ -35,19 +35,6 @@ class _LoginState extends State<Login> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            // error message
-            (errorMessage.isNotEmpty)
-                ? Center(
-                    child: MyText(
-                      errorMessage,
-                      size: 18,
-                      color: Colors.red,
-                      weight: FontWeight.bold,
-                      spacing: 1,
-                    ),
-                  )
-                : Container(),
-
             // google login
             const SizedBox(height: 15),
             GestureDetector(
@@ -81,6 +68,21 @@ class _LoginState extends State<Login> {
             const SizedBox(height: 15),
 
             MyText('----- or -----'),
+
+            const SizedBox(height: 15),
+
+            // error message
+            (errorMessage.isNotEmpty)
+                ? Center(
+                    child: MyText(
+                      errorMessage,
+                      size: 18,
+                      color: Colors.red,
+                      weight: FontWeight.bold,
+                      spacing: 1,
+                    ),
+                  )
+                : Container(),
             const SizedBox(height: 15),
 
             // E-mail textfield
@@ -124,7 +126,15 @@ class _LoginState extends State<Login> {
                 width: MediaQuery.of(context).size.width,
                 height: 55,
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 135, 53, 149),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFF473276),
+                      Color(0xff6848ad),
+                      Color(0xff8367f7),
+                    ],
+                  ),
                   border: Border.all(width: 2, color: Colors.white),
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -156,7 +166,95 @@ class _LoginState extends State<Login> {
             // Forgot password
             const SizedBox(height: 8),
             GestureDetector(
-              onTap: () {},
+              onTap: () async {
+                final resetEmailController = TextEditingController();
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return Center(
+                      child: SingleChildScrollView(
+                        child: AlertDialog(
+                          contentPadding: EdgeInsets.zero,
+                          content: Container(
+                            padding: const EdgeInsets.fromLTRB(15, 15, 10, 0),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Color(0xFF473276),
+                                  Color(0xff6848ad),
+                                  Color(0xff8367f7),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                MyText("Enter your registered E-mail",
+                                    size: 18),
+                                const SizedBox(width: 15),
+                                MyText(
+                                  'We\'ll send you an E-mail to reset your password',
+                                  size: 14,
+                                ),
+                                const SizedBox(height: 15),
+
+                                // e-mail text field
+                                MyTextField(
+                                  controller: resetEmailController,
+                                  label: 'E-mail',
+                                  hint: 'Enter registered E-mail',
+                                ),
+                                const SizedBox(height: 15),
+
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    // cancel button
+                                    GestureDetector(
+                                      onTap: () {
+                                        resetEmailController.clear();
+                                        Navigator.pop(context);
+                                      },
+                                      child: MyText(
+                                        'Cancel',
+                                        weight: FontWeight.bold,
+                                        spacing: 1,
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 15),
+
+                                    // resend e-mail button
+                                    TextButton(
+                                      onPressed: () async {
+                                        await helper.resetPassword(
+                                          email:
+                                              resetEmailController.text.trim(),
+                                        );
+
+                                        resetEmailController.clear();
+                                        Navigator.pop(context);
+                                      },
+                                      child: MyText(
+                                        'Send Reset E-mail',
+                                        weight: FontWeight.bold,
+                                        spacing: 1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
               child: MyText('Forgot password?',
                   weight: FontWeight.bold, spacing: 1),
             ),

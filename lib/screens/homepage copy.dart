@@ -75,9 +75,7 @@ class _HomepageCopyState extends State<HomepageCopy> {
 
               // Profile
               GestureDetector(
-                onTap: () {
-                  helper.signOut();
-                },
+                onTap: () {},
                 child: Row(
                   children: [
                     const Icon(Icons.person_rounded),
@@ -177,13 +175,24 @@ class _HomepageCopyState extends State<HomepageCopy> {
                   );
                 } else {
                   return Center(
-                    child: MyText('No passwords added yet'),
+                    child: MyText(
+                      'No passwords added yet!',
+                      size: 20,
+                      weight: FontWeight.bold,
+                      spacing: 2,
+                    ),
                   );
                 }
               } else {
                 print(snapshot.error);
                 return Center(
-                    child: MyText("Something went wrong! ${snapshot.error}"));
+                  child: MyText(
+                    "Something went wrong! ${snapshot.error}",
+                    size: 20,
+                    weight: FontWeight.bold,
+                    spacing: 2,
+                  ),
+                );
               }
             }),
       ),

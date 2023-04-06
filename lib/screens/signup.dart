@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pkeep_v2/commons.dart';
+import 'package:pkeep_v2/helper.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key, required this.showLoginPage});
@@ -10,6 +11,7 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  final helper = Helper();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final nameController = TextEditingController();
@@ -34,23 +36,12 @@ class _SignUpState extends State<SignUp> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            // error message
-            (errorMessage.isNotEmpty)
-                ? Center(
-                    child: MyText(
-                      errorMessage,
-                      size: 18,
-                      color: Colors.red,
-                      weight: FontWeight.bold,
-                      spacing: 1,
-                    ),
-                  )
-                : Container(),
-
             // google login
             const SizedBox(height: 15),
             GestureDetector(
-              onTap: () {},
+              onTap: () async {
+                await helper.signUpWithGoogle();
+              },
               child: Container(
                 width: MediaQuery.of(context).size.width,
                 height: 55,
@@ -79,6 +70,21 @@ class _SignUpState extends State<SignUp> {
             MyText('----- or -----'),
 
             const SizedBox(height: 15),
+
+            // error message
+            (errorMessage.isNotEmpty)
+                ? Center(
+                    child: MyText(
+                      errorMessage,
+                      size: 18,
+                      color: Colors.red,
+                      weight: FontWeight.bold,
+                      spacing: 1,
+                    ),
+                  )
+                : Container(),
+            const SizedBox(height: 15),
+
             MyTextField(
               controller: nameController,
               label: 'Name',
@@ -98,21 +104,42 @@ class _SignUpState extends State<SignUp> {
             ),
             const SizedBox(height: 10),
 
-            // Login Button
+            // Sign Up Button
             GestureDetector(
-              onTap: () {
+              onTap: () async {
                 errorMessage = validate(
                   name: nameController.text.trim(),
                   email: emailController.text.trim(),
                   password: emailController.text.trim(),
                 );
                 setState(() {});
+
+                if (errorMessage.isEmpty) {
+                  var x = await helper.signUpWithCreds(
+                    name: nameController.text.trim(),
+                    email: emailController.text.trim(),
+                    password: passwordController.text,
+                  );
+
+                  if (x.runtimeType == String) {
+                    errorMessage = x;
+                    setState(() {});
+                  }
+                }
               },
               child: Container(
                 width: MediaQuery.of(context).size.width,
                 height: 55,
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 135, 53, 149),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFF473276),
+                      Color(0xff6848ad),
+                      Color(0xff8367f7),
+                    ],
+                  ),
                   border: Border.all(width: 2, color: Colors.white),
                   borderRadius: BorderRadius.circular(10),
                 ),

@@ -8,12 +8,19 @@ import 'package:pkeep_v2/model.dart';
 class Helper {
   final _store = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
+  final _google = GoogleSignIn();
 
   // Getter for MyUser object stream - monitors when the user logs in or out, returns user info if logged in
   Stream<MyUser> get userAuthStateStream {
     var result = _auth.authStateChanges();
     return result.map((user) {
-      return MyUser.fromFirebaseObject(user!);
+      MyUser myUser = MyUser.fromFirebaseObject(user!);
+      // print('-----');
+      // print(myUser.email);
+      // print(myUser.name);
+      // print(myUser.password);
+      // print('-----');
+      return myUser;
     });
   }
 
@@ -42,19 +49,79 @@ class Helper {
 
   // Sign Out
   signOut() async {
+    // try {
     await _auth.signOut();
+    await _google.signOut();
+    // } catch (e) {
+    // print(e);
+    // }
   }
 
   // Google sign in
   signInWithGoogle() async {
-    final GoogleSignInAccount? gUser = await GoogleSignIn().signIn();
-    final GoogleSignInAuthentication gAuth = await gUser!.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: gAuth.accessToken,
-      idToken: gAuth.idToken,
-    );
-    print('-creds- $credential');
-    return await FirebaseAuth.instance.signInWithCredential(credential);
+    try {
+      // Shows the popup for selecting the account - from here we get the account the user is trying to sign in with
+      final GoogleSignInAccount? googleSignInAccount = await _google.signIn();
+
+      // If an account is selected, this next bit will execute
+      if (googleSignInAccount != null) {
+        // ensures user is signed in with their google account
+        final GoogleSignInAuthentication googleAuth =
+            await googleSignInAccount.authentication;
+
+        // gives us the credentials of the user so we can use it to simply login
+        final AuthCredential authCredential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        // Finally, we sign in using the credentials we got from the above code
+        await _auth.signInWithCredential(authCredential);
+        // print('@@@@@@@@@@@@@@@@@ ${_auth.currentUser!.displayName}');
+        // print('@@@@@@@@@@@@@@@@@ ${_auth.currentUser!.email}');
+      }
+    } on FirebaseAuthException catch (e) {
+      print('Shit got fucked up-> $e');
+      return e.message.toString();
+    }
+  }
+
+  // Google sign up
+  signUpWithGoogle() async {
+    try {
+      // Shows the popup for selecting the account - from here we get the account the user is trying to sign in with
+      final GoogleSignInAccount? googleSignInAccount = await _google.signIn();
+
+      // If an account is selected, this next bit will execute
+      if (googleSignInAccount != null) {
+        // ensures user is signed in with their google account
+        final GoogleSignInAuthentication googleAuth =
+            await googleSignInAccount.authentication;
+
+        // gives us the credentials of the user so we can use it to simply login
+        final AuthCredential authCredential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        // Finally, we sign in using the credentials we got from the above code
+        await _auth.signInWithCredential(authCredential);
+
+        // Creating the user for UserInfo collection in the firestore
+        String? name = _auth.currentUser!.displayName;
+        String? email = _auth.currentUser!.email;
+        String password = '';
+
+        await _store.collection('UserInfo').doc().set({
+          'name': name,
+          'password': password,
+          'email': email,
+        });
+      }
+    } on FirebaseAuthException catch (e) {
+      print('Shit got fucked up-> $e');
+      return e.message.toString();
+    }
   }
 
   // Sign Up with Credentials
@@ -66,15 +133,28 @@ class Helper {
     try {
       await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
-      await _store.collection('userInfo').doc(email).set({
+      await _store.collection('UserInfo').doc(email).set({
         'name': name,
         'password': password,
-        'modePreference': 'night',
+        'email': email,
       });
     } on FirebaseAuthException catch (e) {
       return e.message.toString();
     }
   }
+
+  // user account password reset
+  Future resetPassword({required String email}) async {
+    try {
+      return await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      return e.message.toString();
+    }
+  }
+
+//
+//
+//
 
   // Add password
   addPassword(

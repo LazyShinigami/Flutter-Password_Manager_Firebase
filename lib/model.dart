@@ -5,7 +5,7 @@ class MyUser {
   MyUser();
   MyUser.fromFirebaseObject(User user) {
     email = user.email;
-    // name = map['name'];
+    name = user.displayName;
   }
 }
 
