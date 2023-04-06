@@ -15,11 +15,7 @@ class Helper {
     var result = _auth.authStateChanges();
     return result.map((user) {
       MyUser myUser = MyUser.fromFirebaseObject(user!);
-      // print('-----');
-      // print(myUser.email);
-      // print(myUser.name);
-      // print(myUser.password);
-      // print('-----');
+
       return myUser;
     });
   }
@@ -186,10 +182,7 @@ class Helper {
       final docRef = _store
           .collection('UserPasswords')
           .doc(user.email)
-          .update({password.id: FieldValue.delete()});
-      // final updates = {password.id: deleteField()};
-
-      // docRef.update(updates);
+          .set({password.id: FieldValue.delete()}, SetOptions(merge: true));
     } catch (e) {
       print(e);
     }

@@ -98,6 +98,7 @@ class _LoginState extends State<Login> {
               controller: passwordController,
               label: 'Password',
               hint: 'Enter your password',
+              obscureText: true,
             ),
             const SizedBox(height: 10),
 

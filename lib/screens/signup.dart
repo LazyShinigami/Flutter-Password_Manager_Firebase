@@ -101,6 +101,7 @@ class _SignUpState extends State<SignUp> {
               controller: passwordController,
               label: 'Password',
               hint: 'Enter your password',
+              obscureText: true,
             ),
             const SizedBox(height: 10),
 

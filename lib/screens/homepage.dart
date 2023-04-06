@@ -16,30 +16,21 @@ class _HomepageState extends State<Homepage> {
   final cNameController = TextEditingController();
   final cPasswordController = TextEditingController();
   final cUsernameController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    Map<String, Password> pwdRegister = {};
     // Entire screen - Scaffold
     return Scaffold(
       appBar: AppBar(
-        // toolbarHeight: 40,
         backgroundColor: Colors.black,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            border: Border.all(width: 2, color: Colors.white),
+            borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(20),
               bottomRight: Radius.circular(20),
             ),
-            color: Color.fromARGB(147, 147, 147, 147),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xff8367f7),
-                Color(0xff8367f7),
-                Color(0xffeeadf1),
-              ],
-            ),
+            // color: Color.fromARGB(147, 147, 147, 147),
           ),
         ),
         title: MyText(
@@ -76,6 +67,28 @@ class _HomepageState extends State<Homepage> {
                 thickness: 1,
                 height: 30,
               ),
+              const SizedBox(height: 10),
+
+              // Profile
+              GestureDetector(
+                onTap: () {},
+                child: Row(
+                  children: [
+                    const Icon(Icons.person_rounded),
+                    const SizedBox(width: 10),
+                    MyText(
+                      'Profile',
+                      weight: FontWeight.bold,
+                      spacing: 1,
+                      size: 18,
+                      color: Colors.black,
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Logout
               GestureDetector(
                 onTap: () {
                   helper.signOut();
@@ -94,122 +107,220 @@ class _HomepageState extends State<Homepage> {
                   ],
                 ),
               ),
+              const SizedBox(height: 10),
+              // Switch Account
+              GestureDetector(
+                onTap: () {
+                  helper.signOut();
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.swap_vert_rounded),
+                    const SizedBox(width: 10),
+                    MyText(
+                      'Switch Account',
+                      weight: FontWeight.bold,
+                      spacing: 1,
+                      size: 18,
+                      color: Colors.black,
+                    )
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
-      body: StreamBuilder(
-          stream: helper.fetchAllUserPasswords(user: widget.user),
-          builder: (context, snapshot) {
-            var x;
-            if (snapshot.hasData) {
-              x = snapshot.data!.data() as Map<String, dynamic>;
-              x.forEach((key, value) {
-                pwdRegister[key] = Password(
-                  id: value['key'],
-                  clientName: value['clientName'],
-                  clientPassword: value['clientPassword'],
-                  clientUsername: value['clientUsername'],
+      body: Container(
+        height: double.infinity,
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/circuit.jpeg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: StreamBuilder(
+            stream: helper.fetchAllUserPasswords(user: widget.user),
+            builder: (context, snapshot) {
+              var x;
+              if (snapshot.hasData) {
+                if (snapshot.data!.data() != null) {
+                  // Keep it here so when the stream refreshes, this variable is also refreshed
+                  Map<String, Password> pwdRegister = {};
+
+                  x = snapshot.data!.data() as Map<String, dynamic>;
+                  x.forEach(
+                    (key, value) {
+                      pwdRegister[key] = Password(
+                        id: value['key'],
+                        clientName: value['clientName'],
+                        clientPassword: value['clientPassword'],
+                        clientUsername: value['clientUsername'],
+                      );
+                    },
+                  );
+
+                  return GridView.count(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 10),
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    crossAxisCount: 2,
+                    children: [
+                      for (Password password in pwdRegister.values)
+                        PasswordTile(
+                          password: password,
+                          user: widget.user,
+                        )
+                    ],
+                  );
+                } else {
+                  return Center(
+                    child: MyText(
+                      'No passwords added yet!',
+                      size: 20,
+                      weight: FontWeight.bold,
+                      spacing: 2,
+                    ),
+                  );
+                }
+              } else {
+                print(snapshot.error);
+                return Center(
+                  child: MyText(
+                    "Something went wrong!",
+                    size: 20,
+                    weight: FontWeight.bold,
+                    spacing: 2,
+                  ),
                 );
-              });
-              return GridView.count(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                crossAxisCount: 2,
-                children: [
-                  for (Password password in pwdRegister.values)
-                    PasswordTile(
-                      password: password,
-                      user: widget.user,
-                    )
-                ],
-              );
-            } else {
-              print(snapshot.error);
-              return Center(child: MyText("Something went wrong!"));
-            }
-          }),
+              }
+            }),
+      ),
       floatingActionButton: GestureDetector(
         onTap: () {
+          String error = '';
           showDialog(
             context: context,
             builder: (context) {
-              return Theme(
-                data: ThemeData(
-                  dialogBackgroundColor: const Color.fromARGB(171, 84, 0, 99),
-                ),
-                child: Center(
-                  child: SingleChildScrollView(
-                    child: AlertDialog(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 20),
-                      title: MyText(
-                        'Add task',
-                        size: 20,
-                        weight: FontWeight.bold,
-                        spacing: 2,
-                      ),
-                      content: Column(
-                        children: [
-                          MyTextField(
-                            controller: cNameController,
-                            label: 'Client Name',
-                            hint: 'Enter client name',
+              return Center(
+                child: SingleChildScrollView(
+                  child: StatefulBuilder(
+                    builder: (childContext, childSetState) {
+                      return AlertDialog(
+                        contentPadding: EdgeInsets.zero,
+                        content: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 20),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color(0xFF473276),
+                                Color(0xff6848ad),
+                                Color(0xff8367f7),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                          const SizedBox(height: 10),
-                          MyTextField(
-                            controller: cUsernameController,
-                            label: 'Username',
-                            hint: 'Enter username',
-                          ),
-                          const SizedBox(height: 10),
-                          MyTextField(
-                            controller: cPasswordController,
-                            label: 'Password',
-                            hint: 'Enter client password',
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                          child: Column(
                             children: [
-                              // Cancel Button
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
-                                child: MyText(
-                                  'Cancel',
-                                  weight: FontWeight.bold,
-                                  spacing: 1,
-                                ),
+                              MyText(
+                                'Add task',
+                                size: 20,
+                                weight: FontWeight.bold,
+                                spacing: 2,
                               ),
-                              const SizedBox(width: 10),
 
-                              // Add Button
-                              GestureDetector(
-                                onTap: () async {
-                                  await helper.addPassword(
-                                    user: widget.user,
-                                    clientName: cNameController.text.trim(),
-                                    clientPassword: cPasswordController.text,
-                                    clientUsername:
-                                        cUsernameController.text.trim(),
-                                  );
-                                  Navigator.pop(context);
-                                },
-                                child: MyText(
-                                  'Add',
-                                  weight: FontWeight.bold,
-                                  spacing: 1,
-                                ),
+                              //
+                              const SizedBox(height: 10),
+                              (error.isEmpty)
+                                  ? Container()
+                                  : MyText(
+                                      error,
+                                      color: Colors.red,
+                                      weight: FontWeight.bold,
+                                      spacing: 1,
+                                    ),
+                              const SizedBox(height: 10),
+                              //
+
+                              MyTextField(
+                                controller: cNameController,
+                                label: 'Client Name',
+                                hint: 'Enter client name',
+                              ),
+                              const SizedBox(height: 10),
+                              MyTextField(
+                                controller: cUsernameController,
+                                label: 'Username',
+                                hint: 'Enter username',
+                              ),
+                              const SizedBox(height: 10),
+                              MyTextField(
+                                controller: cPasswordController,
+                                label: 'Password',
+                                hint: 'Enter password',
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  // Cancel Button
+                                  GestureDetector(
+                                    onTap: () {
+                                      cNameController.clear();
+                                      cPasswordController.clear();
+                                      cUsernameController.clear();
+                                      Navigator.pop(context);
+                                    },
+                                    child: MyText(
+                                      'Cancel',
+                                      weight: FontWeight.bold,
+                                      spacing: 1,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+
+                                  // Add Button
+                                  GestureDetector(
+                                    onTap: () async {
+                                      if (cNameController.text.isNotEmpty &&
+                                          cPasswordController.text.isNotEmpty &&
+                                          cUsernameController.text.isNotEmpty) {
+                                        await helper.addPassword(
+                                          user: widget.user,
+                                          clientName:
+                                              cNameController.text.trim(),
+                                          clientPassword:
+                                              cPasswordController.text,
+                                          clientUsername:
+                                              cUsernameController.text.trim(),
+                                        );
+                                        cNameController.clear();
+                                        cPasswordController.clear();
+                                        cUsernameController.clear();
+                                        Navigator.pop(context);
+                                      } else {
+                                        error = 'There are empty fields';
+                                        childSetState(() {});
+                                      }
+                                    },
+                                    child: MyText(
+                                      'Add',
+                                      weight: FontWeight.bold,
+                                      spacing: 1,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               );
@@ -222,14 +333,13 @@ class _HomepageState extends State<Homepage> {
           decoration: BoxDecoration(
             border: Border.all(width: 2, color: Colors.white),
             borderRadius: BorderRadius.circular(100),
-            color: const Color.fromARGB(147, 147, 147, 147),
             gradient: const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
+                Color(0xFF473276),
+                Color(0xff6848ad),
                 Color(0xff8367f7),
-                Color(0xff8367f7),
-                Color(0xffeeadf1),
               ],
             ),
           ),
@@ -247,9 +357,14 @@ class _HomepageState extends State<Homepage> {
 }
 
 class PasswordTile extends StatefulWidget {
-  PasswordTile({super.key, required this.password, required this.user});
+  PasswordTile({
+    super.key,
+    required this.password,
+    required this.user,
+  });
   Password password;
   MyUser user;
+
   @override
   State<PasswordTile> createState() => _PasswordTileState();
 }
@@ -257,6 +372,7 @@ class PasswordTile extends StatefulWidget {
 class _PasswordTileState extends State<PasswordTile> {
   final helper = Helper();
   bool showPwd = false;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -265,46 +381,67 @@ class _PasswordTileState extends State<PasswordTile> {
         showDialog(
           context: context,
           builder: (context) {
-            return Container(
-              child: Center(
-                child: SingleChildScrollView(
-                  child: AlertDialog(
-                    //         gradient: const LinearGradient(
-                    //   begin: Alignment.topCenter,
-                    //   end: Alignment.bottomCenter,
-                    //   colors: [
-                    //     Color(0xff8367f7),
-                    //     Color(0xffeeadf1),
-                    //   ],
-                    // ),
-                    title: MyText("Delete this?"),
-                    content: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+            return Center(
+              child: SingleChildScrollView(
+                child: AlertDialog(
+                  contentPadding: EdgeInsets.zero,
+                  content: Container(
+                    padding: const EdgeInsets.fromLTRB(15, 15, 10, 0),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFF473276),
+                          Color(0xff6848ad),
+                          Color(0xff8367f7),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: MyText(
-                            'Cancel',
-                            weight: FontWeight.bold,
-                            spacing: 1,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        GestureDetector(
-                          onTap: () async {
-                            await helper.deletePassword(
-                                password: widget.password, user: widget.user);
-                            Navigator.pop(context);
-                            super.setState(() {});
-                          },
-                          child: MyText(
-                            'Delete',
-                            color: Colors.red,
-                            weight: FontWeight.bold,
-                            spacing: 1,
-                          ),
+                        MyText("Delete this?", size: 18),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            // Cancel Button
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: MyText(
+                                'Cancel',
+                                weight: FontWeight.bold,
+                                spacing: 1,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+
+                            // Delete button
+                            TextButton(
+                              onPressed: () async {
+                                try {
+                                  var _auth = Helper();
+                                  await _auth.deletePassword(
+                                      password: widget.password,
+                                      user: widget.user);
+                                } catch (e) {
+                                  print(
+                                      "Some shit went wrong on HomePage widget --------------> $e");
+                                }
+
+                                Navigator.pop(context);
+                              },
+                              child: MyText(
+                                'Delete',
+                                color: Colors.red,
+                                weight: FontWeight.bold,
+                                spacing: 1,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -327,17 +464,7 @@ class _PasswordTileState extends State<PasswordTile> {
         decoration: BoxDecoration(
           border: Border.all(width: 2, color: Colors.white),
           borderRadius: BorderRadius.circular(10),
-          color: const Color.fromARGB(147, 147, 147, 147),
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xff8367f7),
-              Color(0xff8367f7),
-              // Color(0xffeeadf1),
-              Color(0xffeeadf1),
-            ],
-          ),
+          color: const Color.fromARGB(103, 0, 0, 0),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
